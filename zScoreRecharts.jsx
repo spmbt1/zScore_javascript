@@ -1,6 +1,6 @@
 /** Компонент zScore (z-оценки) для демо в Recharts. Использовать:
  * 1) Копируем всё в страницу https://recharts.org/en-US/examples/AreaChartFillByValue справа
- * 2) Нажимаем Run сверху кода. Смотрим результат.
+ * 2) Нажимаем Run сверху кода. Смотрим результат. (Версия 2025-06-06)
  * Результат - участки функции с |zScore| > 1 заполняются красным фоном
  */
 import React, { PureComponent } from 'react';
@@ -8,7 +8,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 // начало кода JS решения
 const zCutoff = 1; // условие отсечки z-оценки; что больше по модулю - то красным
-const sets = 2; // сколько кривых выводить
+const sets = ['d1', 'd2', 'd3']; // сколько кривых выводить
 function deviation(values, valueof) {
   const v = variance(values, valueof);
   return v ? Math.sqrt(v) : v;
@@ -58,71 +58,74 @@ const zScore = (inputs, accessor) => inputs.map(
 let data = [
   {
     name: 'Page A',
-    uv: 4000,
-    pv: 2400,
-    av: 2400,
+    d1: 4000,
+    d2: 2400,
+    d3: 2400,
   },
   {
     name: 'Page B',
-    uv: 2000,
-    pv: 1398,
-    av: 2210,
+    d1: 2000,
+    d2: 1398,
+    d3: 2210,
   },
   {
     name: 'Page C',
-    uv: -1000,
-    pv: 9800,
-    av: 2290,
+    d1: -1000,
+    d2: 9800,
+    d3: 2290,
   },
   {
     name: 'Page D',
-    uv: 500,
-    pv: 3908,
-    av: 2000,
+    d1: 500,
+    d2: 3908,
+    d3: 2000,
   },
   {
     name: 'Page E',
-    uv: -2000,
-    pv: 5900,
-    av: 2181,
+    d1: -2000,
+    d2: 5900,
+    //d3: 2181,
   },
   {
     name: 'Page F',
-    uv: -250,
-    pv: 3800,
-    av: 2500,
+    d1: -250,
+    d2: 3800,
+    d3: 2500,
   },
   {
     name: 'Page G',
-    uv: 4100,
-    pv: 4500,
-    av: 2100,
+    d1: 4100,
+    d2: 4500,
+    d3: 2100,
   },
 ];
 
-data = data.map((x, i) => ({ // добавили z-оценки
-  ...x,
-  zuv: zScore(Object.values(data.map((x) => x.uv)))[i],
-  zpv: zScore(Object.values(data.map((x) => x.pv)))[i],
-  zpa: zScore(Object.values(data.map((x) => x.av)))[i],
-}));
+for(y of sets) {
+  data = data.map((x, i) => ({ // добавили z-оценки
+    ...x,
+    ['z' + y]: zScore(Object.values(data.map((x) => x[y])))[i],
+  }));
+}
 
 const gradientOffset = (z) => {
-  const dataMax = Math.max(...data.map((i) => i[z])),
-    dataMin = Math.min(...data.map((i) => i[z]));
+  const zz = 'z' + z,
+    dZ = data.filter(i => i[zz]).map((i) => i[zz]),
+    dataMax = Math.max(...dZ),
+    dataMin = Math.min(...dZ);
+  console.log('=='+z, dataMax, data.filter((x) => x), dataMax !== dataMin ? (dataMax - zCutoff) / (dataMax - dataMin) : 0.5);
   if (dataMax === dataMin) {
     return 0.5;
   }
   return (dataMax - zCutoff) / (dataMax - dataMin);
 };
 
-const offU = gradientOffset('zuv'),
-  offP = gradientOffset('zpv');
-  offA = gradientOffset('zpa');
+const offU = gradientOffset('d1'),
+  offP = gradientOffset('d2'),
+  offA = gradientOffset('d3');
 
-const redGreenDot = x => {console.log(x); return <Dot cx={x.cx} cy={x.cy} r={3}
-  stroke={Math.abs(x.payload['z'+x.dataKey]) > 1 ? 'red' : '#3d3'}
-  strokeWidth={Math.abs(x.payload['z'+x.dataKey]) > 1 ? 6 : 2} />;};
+const redGreenDot = x => {return <Dot cx={x.cx} cy={x.cy} r={3}
+  stroke={Math.abs(x.payload['z' + x.dataKey]) > zCutoff ? 'red' : '#3d3'}
+  strokeWidth={Math.abs(x.payload['z' + x.dataKey]) > zCutoff ? 6 : 2} />;};
 
 export default class Example extends PureComponent {
   static demoUrl = 'https://codesandbox.io/p/sandbox/area-chart-filled-by-sign-td4jqk';
@@ -133,12 +136,7 @@ export default class Example extends PureComponent {
         width={500}
         height={400}
         data={data}
-        margin={{
-          top: 10,
-          right: 30,
-          left: 0,
-          bottom: 0,
-        }}
+        margin={{top: 10, right: 30, left: 0, bottom: 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
@@ -158,41 +156,38 @@ export default class Example extends PureComponent {
             <stop offset={1 - offP} stopColor="#f37c" stopOpacity={0.8} />
           </linearGradient>
           <linearGradient id="splitColorA" x1="0" y1="0" x2="0" y2="1">
-            <stop offset={offA} stopColor="#f37c" stopOpacity={0.8} />
-            <stop offset={offA} stopColor="blue" stopOpacity={0.1} />
-            <stop offset={1 - offA} stopColor="blue" stopOpacity={0.1} />
-            <stop offset={1 - offA} stopColor="#f37c" stopOpacity={0.8} />
+            <stop offset={offA} stopColor="#b3ac" stopOpacity={0.8} />
+            <stop offset={offA} stopColor="#047495" stopOpacity={0.1} />
+            <stop offset={1 - offA} stopColor="#047495" stopOpacity={0.1} />
+            <stop offset={1 - offA} stopColor="#b3ac" stopOpacity={0.8} />
           </linearGradient>
         </defs>
-        <Area
+        {sets.indexOf('d1') >=0 ? <Area
           type="monotone"
-          dataKey="uv"
-          stroke="#000"
+          dataKey="d1"
           fill="url(#splitColorU)"
           dot={redGreenDot}
           stroke="red"
           strokeWidth="2"
-        />
-        {sets > 1 ? <Area
+        /> : null}
+        {sets.indexOf('d2') >=0 ? <Area
           type="monotone"
-          dataKey="pv"
-          stroke="#000"
+          dataKey="d2"
           fill="url(#splitColorP)"
           dot={redGreenDot}
           stroke="blue"
           strokeWidth="2"
         /> : null}
-        {sets === 3 ? <Area
+        {sets.indexOf('d3') >=0 ? <Area
           type="monotone"
-          dataKey="av"
-          stroke="#000"
+          dataKey="d3"
           fill="url(#splitColorA)"
           dot={redGreenDot}
           stroke="green"
           strokeWidth="2"
         /> : null}
       </AreaChart>
-      </ResponsiveContainer>;
+    </ResponsiveContainer>;
   }
 }
 
