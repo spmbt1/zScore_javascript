@@ -1,0 +1,10 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+.recharts-wrapper {
+  height: 100% !important;
+}
+div + .recharts-wrapper {
+  margin: 0 auto;
+}

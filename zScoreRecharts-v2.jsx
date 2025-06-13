@@ -192,7 +192,7 @@ export default class Example extends PureComponent {
             checked={this.state.sets.indexOf(s.set) >= 0 ? 'checked' : ''}
             disabled={sets.indexOf(s.set) < 0 ? 'disabled' : ''}
             onClick={ev => this.chgGroupsList(ev, s.set)} />
-          <label key={'L_'+s.set} for={'i_'+s.set}
+          <label key={'L_'+s.set} htmlFor={'i_'+s.set}
             style={{cursor: sets.indexOf(s.set) < 0 ? 'no-drop' : 'pointer'}}>
             &nbsp;группа <b>{s.set}</b>; </label>
           </span>)}
@@ -313,7 +313,7 @@ export default class Example extends PureComponent {
 
 * Если пары `value` центрировать по среднему, а не по `dataMin`, то группы данных будут выглядеть симметрично. Правда, таких обширных полос фона не будет и они окажутся незаметны. Это несложно сделать и посмотреть, как будет.
 * Сейчас код привязан к реализации удалённой страницы. Чуть что там изменится - перестанет работать. Так что для долговременности, всё же, придётся занести /src` с проектом.
-* Да и `useState` сейчас не работает (и не должен) в `PureComponent`, и просто state тоже "отдыхает" - нужно компилировать проект, чтобы начали работать, например, чекбоксы вверху, которые пока просто индикаторы включённых наборов данных.
+* Да и `useState` сейчас не работает (и не должен) в `PureComponent`, пришлось на старом  стейте сделать автообновление кривых по смене чекбоксов.
 
 ======================
 
